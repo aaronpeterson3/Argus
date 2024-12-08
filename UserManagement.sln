@@ -1,0 +1,14 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserManagement.Abstractions", "src\UserManagement.Abstractions\UserManagement.Abstractions.csproj", "{12345678-1234-1234-1234-123456789012}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserManagement.Grains", "src\UserManagement.Grains\UserManagement.Grains.csproj", "{23456789-2345-2345-2345-234567890123}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserManagement.Infrastructure", "src\UserManagement.Infrastructure\UserManagement.Infrastructure.csproj", "{34567890-3456-3456-3456-345678901234}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserManagement.Api", "src\UserManagement.Api\UserManagement.Api.csproj", "{45678901-4567-4567-4567-456789012345}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserManagement.Tests", "src\UserManagement.Tests\UserManagement.Tests.csproj", "{56789012-5678-5678-5678-567890123456}"
+EndProject
