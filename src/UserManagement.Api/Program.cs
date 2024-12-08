@@ -1,7 +1,11 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Hosting;
+using UserManagement.Api.Services;
 using UserManagement.Grains;
 using UserManagement.Infrastructure;
 
@@ -30,6 +34,25 @@ builder.Host.UseOrleans((context, siloBuilder) =>
         });
 });
 
+// Configure JWT Authentication
+var authConfig = builder.Configuration.GetSection("Authentication").Get<AuthConfig>();
+builder.Services.Configure<AuthConfig>(builder.Configuration.GetSection("Authentication"));
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(authConfig.JwtSecret)),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+// Configure Services
+builder.Services.AddScoped<JwtTokenService>();
+
 // Configure DbContext
 builder.Services.AddDbContext<UserDbContext>(options =>
 {
@@ -47,6 +70,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
