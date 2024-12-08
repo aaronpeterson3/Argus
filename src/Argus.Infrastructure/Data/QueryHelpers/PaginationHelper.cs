@@ -1,7 +1,19 @@
 namespace Argus.Infrastructure.Data.QueryHelpers
 {
+    /// <summary>
+    /// Provides extension methods for paginated database queries
+    /// </summary>
     public static class PaginationHelper
     {
+        /// <summary>
+        /// Executes a paginated query and returns results with metadata
+        /// </summary>
+        /// <typeparam name="T">Entity type</typeparam>
+        /// <param name="connection">Database connection</param>
+        /// <param name="query">SQL query builder</param>
+        /// <param name="page">Page number (1-based)</param>
+        /// <param name="pageSize">Items per page</param>
+        /// <returns>Paginated result with items and metadata</returns>
         public static async Task<PaginatedResult<T>> PaginateAsync<T>(
             this IDbConnection connection,
             SqlBuilder query,
@@ -34,12 +46,35 @@ namespace Argus.Infrastructure.Data.QueryHelpers
         }
     }
 
+    /// <summary>
+    /// Contains paginated query results and metadata
+    /// </summary>
+    /// <typeparam name="T">Entity type</typeparam>
     public class PaginatedResult<T>
     {
+        /// <summary>
+        /// Items in the current page
+        /// </summary>
         public List<T> Items { get; set; }
+
+        /// <summary>
+        /// Current page number (1-based)
+        /// </summary>
         public int Page { get; set; }
+
+        /// <summary>
+        /// Number of items per page
+        /// </summary>
         public int PageSize { get; set; }
+
+        /// <summary>
+        /// Total number of items across all pages
+        /// </summary>
         public int TotalCount { get; set; }
+
+        /// <summary>
+        /// Total number of pages
+        /// </summary>
         public int TotalPages { get; set; }
     }
 }
