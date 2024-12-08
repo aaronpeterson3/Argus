@@ -1,61 +1,70 @@
 using Argus.Infrastructure.Encryption;
 using Dapper;
+using Argus.Infrastructure.Data.DTOs;
+using Argus.Infrastructure.Data.Interfaces;
 
 namespace Argus.Infrastructure.Data.Repositories
 {
-    /// <summary>
-    /// Repository for managing tenant data using Dapper
-    /// </summary>
     public class TenantRepository : ITenantRepository
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly IDataEncryption _encryption;
 
-        /// <summary>
-        /// Initializes repository with database and encryption dependencies
-        /// </summary>
+        private const string SelectTenantById = @"
+            SELECT id, name, subdomain, logo_url, created_at, settings
+            FROM tenants
+            WHERE id = @Id";
+
+        private const string SelectTenantBySubdomain = @"
+            SELECT id, name, subdomain, logo_url, created_at, settings
+            FROM tenants
+            WHERE subdomain = @Subdomain";
+
+        private const string InsertTenant = @"
+            INSERT INTO tenants (id, name, subdomain, logo_url, created_at, settings)
+            VALUES (@Id, @Name, @Subdomain, @LogoUrl, @CreatedAt, @Settings::jsonb)
+            RETURNING id";
+
         public TenantRepository(IDbConnectionFactory connectionFactory, IDataEncryption encryption)
         {
             _connectionFactory = connectionFactory;
             _encryption = encryption;
         }
 
-        /// <summary>
-        /// Retrieves tenant by ID with decrypted sensitive data
-        /// </summary>
-        /// <param name="id">Tenant ID</param>
-        /// <returns>Tenant entity or null if not found</returns>
-        public async Task<TenantEntity> GetByIdAsync(Guid id)
+        public async Task<TenantDto> GetByIdAsync(Guid id)
         {
             using var connection = _connectionFactory.CreateConnection();
-            var tenant = await connection.QuerySingleOrDefaultAsync<TenantEntity>(
-                SqlQueries.GetTenantById,
+            return await connection.QuerySingleOrDefaultAsync<TenantDto>(
+                SelectTenantById,
                 new { Id = id });
-
-            if (tenant != null)
-            {
-                DecryptSensitiveData(tenant);
-            }
-
-            return tenant;
         }
 
-        /// <summary>
-        /// Creates new tenant with encrypted sensitive data
-        /// </summary>
-        /// <param name="tenant">Tenant entity to create</param>
-        /// <returns>ID of created tenant</returns>
-        public async Task<Guid> CreateAsync(TenantEntity tenant)
+        public async Task<TenantDto> GetBySubdomainAsync(string subdomain)
         {
-            EncryptSensitiveData(tenant);
+            using var connection = _connectionFactory.CreateConnection();
+            return await connection.QuerySingleOrDefaultAsync<TenantDto>(
+                SelectTenantBySubdomain,
+                new { Subdomain = subdomain });
+        }
 
+        public async Task<IEnumerable<TenantDto>> GetAllAsync()
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            return await connection.QueryAsync<TenantDto>("SELECT * FROM tenants");
+        }
+
+        public async Task<Guid> CreateAsync(TenantDto tenant)
+        {
             using var connection = _connectionFactory.CreateConnection();
             using var transaction = connection.BeginTransaction();
 
             try
             {
+                tenant.Id = Guid.NewGuid();
+                tenant.CreatedAt = DateTime.UtcNow;
+
                 var id = await connection.QuerySingleAsync<Guid>(
-                    SqlQueries.CreateTenant,
+                    InsertTenant,
                     tenant,
                     transaction);
 
@@ -69,20 +78,25 @@ namespace Argus.Infrastructure.Data.Repositories
             }
         }
 
-        private void EncryptSensitiveData(TenantEntity tenant)
+        public async Task UpdateAsync(TenantDto tenant)
         {
-            if (!string.IsNullOrEmpty(tenant.TaxId))
-            {
-                tenant.TaxId = _encryption.Encrypt(tenant.TaxId);
-            }
+            using var connection = _connectionFactory.CreateConnection();
+            await connection.ExecuteAsync(@"
+                UPDATE tenants 
+                SET name = @Name,
+                    subdomain = @Subdomain,
+                    logo_url = @LogoUrl,
+                    settings = @Settings::jsonb
+                WHERE id = @Id",
+                tenant);
         }
 
-        private void DecryptSensitiveData(TenantEntity tenant)
+        public async Task DeleteAsync(Guid id)
         {
-            if (!string.IsNullOrEmpty(tenant.TaxId))
-            {
-                tenant.TaxId = _encryption.Decrypt(tenant.TaxId);
-            }
+            using var connection = _connectionFactory.CreateConnection();
+            await connection.ExecuteAsync(
+                "DELETE FROM tenants WHERE id = @Id",
+                new { Id = id });
         }
     }
 }
