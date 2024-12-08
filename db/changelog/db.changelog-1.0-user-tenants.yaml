@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2
+      author: argus
+      changes:
+        - createTable:
+            tableName: user_tenants
+            columns:
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: invited_by
+                  type: uuid
+              - column:
+                  name: invited_at
+                  type: timestamp
+              - column:
+                  name: accepted_at
+                  type: timestamp
+
+        - addPrimaryKey:
+            tableName: user_tenants
+            columnNames: user_id, tenant_id
+            constraintName: pk_user_tenants
+
+        - createIndex:
+            indexName: idx_user_tenants_tenant
+            tableName: user_tenants
+            columns:
+              - column:
+                  name: tenant_id
+
+        - createIndex:
+            indexName: idx_user_tenants_user
+            tableName: user_tenants
+            columns:
+              - column:
+                  name: user_id
