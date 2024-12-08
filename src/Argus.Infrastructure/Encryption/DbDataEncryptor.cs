@@ -1,0 +1,24 @@
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+
+namespace Argus.Infrastructure.Encryption
+{
+    public class EncryptedStringConverter : ValueConverter<string, string>
+    {
+        public EncryptedStringConverter(IDataEncryption encryption)
+            : base(
+                v => encryption.Encrypt(v),
+                v => encryption.Decrypt(v))
+        {
+        }
+    }
+
+    public class EncryptedJsonConverter<T> : ValueConverter<T, string>
+    {
+        public EncryptedJsonConverter(IDataEncryption encryption)
+            : base(
+                v => encryption.Encrypt(JsonSerializer.Serialize(v)),
+                v => JsonSerializer.Deserialize<T>(encryption.Decrypt(v)))
+        {
+        }
+    }
+}
