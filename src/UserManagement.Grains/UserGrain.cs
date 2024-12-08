@@ -2,15 +2,23 @@ using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.Extensions.Options;
 using Orleans;
 using UserManagement.Abstractions;
+using UserManagement.Api;
 
 namespace UserManagement.Grains
 {
     public class UserGrain : Grain, IUserGrain
     {
+        private readonly PasswordHashConfig _passwordConfig;
         private UserState state;
         private string passwordHash;
+
+        public UserGrain(IOptions<OrleansConfig> options)
+        {
+            _passwordConfig = options.Value.PasswordHashConfig;
+        }
 
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
@@ -67,8 +75,8 @@ namespace UserManagement.Grains
                 password: password,
                 salt: salt,
                 prf: KeyDerivationPrf.HMACSHA256,
-                iterationCount: 100000,
-                numBytesRequested: 256 / 8));
+                iterationCount: _passwordConfig.IterationCount,
+                numBytesRequested: _passwordConfig.NumBytesRequested));
 
             return $"{Convert.ToBase64String(salt)}.{hashed}";
         }
@@ -86,8 +94,8 @@ namespace UserManagement.Grains
                 password: password,
                 salt: salt,
                 prf: KeyDerivationPrf.HMACSHA256,
-                iterationCount: 100000,
-                numBytesRequested: 256 / 8));
+                iterationCount: _passwordConfig.IterationCount,
+                numBytesRequested: _passwordConfig.NumBytesRequested));
 
             return hash == hashed;
         }
