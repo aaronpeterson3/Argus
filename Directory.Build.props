@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <RootNamespace>Argus.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+</Project>
