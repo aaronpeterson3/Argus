@@ -2,17 +2,28 @@ using Dapper;
 
 namespace Argus.Infrastructure.Data.Repositories
 {
+    /// <summary>
+    /// Repository for managing tenant data using Dapper
+    /// </summary>
     public class TenantRepository : ITenantRepository
     {
         private readonly IDbConnectionFactory _connectionFactory;
         private readonly IDataEncryption _encryption;
 
+        /// <summary>
+        /// Initializes repository with database and encryption dependencies
+        /// </summary>
         public TenantRepository(IDbConnectionFactory connectionFactory, IDataEncryption encryption)
         {
             _connectionFactory = connectionFactory;
             _encryption = encryption;
         }
 
+        /// <summary>
+        /// Retrieves tenant by ID with decrypted sensitive data
+        /// </summary>
+        /// <param name="id">Tenant ID</param>
+        /// <returns>Tenant entity or null if not found</returns>
         public async Task<TenantEntity> GetByIdAsync(Guid id)
         {
             using var connection = _connectionFactory.CreateConnection();
@@ -28,6 +39,11 @@ namespace Argus.Infrastructure.Data.Repositories
             return tenant;
         }
 
+        /// <summary>
+        /// Creates new tenant with encrypted sensitive data
+        /// </summary>
+        /// <param name="tenant">Tenant entity to create</param>
+        /// <returns>ID of created tenant</returns>
         public async Task<Guid> CreateAsync(TenantEntity tenant)
         {
             EncryptSensitiveData(tenant);
