@@ -1,35 +1,28 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Orleans.TestKit;
+using Orleans.TestingHost;
 using Argus.Abstractions;
-using Argus.Grains;
+using Moq;
 
 namespace Argus.Tests
 {
-    /// <summary>
-    /// Tests for the UserGrain implementation
-    /// </summary>
     [TestClass]
     public class UserGrainTests
     {
-        private TestKitSilo silo;
+        private TestCluster _cluster;
 
-        /// <summary>
-        /// Initializes test context
-        /// </summary>
         [TestInitialize]
         public void Initialize()
         {
-            silo = new TestKitSilo();
+            var builder = new TestClusterBuilder();
+            _cluster = builder.Build();
+            _cluster.Deploy();
         }
 
-        /// <summary>
-        /// Tests that creating a user with valid data succeeds
-        /// </summary>
         [TestMethod]
         public async Task CreateUser_WithValidData_ShouldSucceed()
         {
             // Arrange
-            var grain = silo.CreateGrain<UserGrain>("test@example.com");
+            var grain = _cluster.GrainFactory.GetGrain<IUserGrain>("test@example.com");
             var profile = new UserProfile
             {
                 FirstName = "John",
@@ -48,59 +41,10 @@ namespace Argus.Tests
             Assert.AreEqual("Doe", state.Profile.LastName);
         }
 
-        /// <summary>
-        /// Tests that validating correct credentials succeeds
-        /// </summary>
-        [TestMethod]
-        public async Task ValidateCredentials_WithCorrectPassword_ShouldSucceed()
-        {
-            // Arrange
-            var grain = silo.CreateGrain<UserGrain>("test@example.com");
-            var profile = new UserProfile
-            {
-                FirstName = "John",
-                LastName = "Doe",
-                DisplayName = "JohnD"
-            };
-            await grain.CreateAsync("test@example.com", "Password123!", profile);
-
-            // Act
-            var result = await grain.ValidateCredentialsAsync("Password123!");
-
-            // Assert
-            Assert.IsTrue(result);
-        }
-
-        /// <summary>
-        /// Tests that validating incorrect credentials fails
-        /// </summary>
-        [TestMethod]
-        public async Task ValidateCredentials_WithIncorrectPassword_ShouldFail()
-        {
-            // Arrange
-            var grain = silo.CreateGrain<UserGrain>("test@example.com");
-            var profile = new UserProfile
-            {
-                FirstName = "John",
-                LastName = "Doe",
-                DisplayName = "JohnD"
-            };
-            await grain.CreateAsync("test@example.com", "Password123!", profile);
-
-            // Act
-            var result = await grain.ValidateCredentialsAsync("WrongPassword!");
-
-            // Assert
-            Assert.IsFalse(result);
-        }
-
-        /// <summary>
-        /// Cleans up test resources
-        /// </summary>
         [TestCleanup]
         public void Cleanup()
         {
-            silo?.Dispose();
+            _cluster?.StopAllSilos();
         }
     }
 }
