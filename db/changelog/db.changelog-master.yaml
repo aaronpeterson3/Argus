@@ -1,4 +1,10 @@
 databaseChangeLog:
   - include:
-      file: db.changelog-1.0.yaml
+      file: 1.0/1_create_tenants.sql
+      relativeToChangelogFile: true
+  - include:
+      file: 1.0/2_create_user_tenants.sql
+      relativeToChangelogFile: true
+  - include:
+      file: 1.0/3_create_permissions.sql
       relativeToChangelogFile: true
