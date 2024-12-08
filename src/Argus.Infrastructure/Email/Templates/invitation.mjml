@@ -1,0 +1,46 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all font-family="Arial, sans-serif" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f4f4f4">
+    <mj-section padding="20px">
+      <mj-column>
+        <mj-image width="200px" src="{{logoUrl}}" alt="{{businessName}}" />
+      </mj-column>
+    </mj-section>
+    
+    <mj-section background-color="#ffffff" padding="20px">
+      <mj-column>
+        <mj-text font-size="20px" color="#333333">
+          You've been invited to join {{businessName}}
+        </mj-text>
+        
+        <mj-text color="#555555" font-size="16px" line-height="24px">
+          Hello {{inviteeName}},
+        </mj-text>
+        
+        <mj-text color="#555555" font-size="16px" line-height="24px">
+          {{inviterName}} has invited you to join {{businessName}} on Argus. Click the button below to accept the invitation:
+        </mj-text>
+        
+        <mj-button background-color="#4f46e5" color="white" href="{{inviteUrl}}" border-radius="4px">
+          Accept Invitation
+        </mj-button>
+        
+        <mj-text color="#555555" font-size="14px" line-height="20px">
+          This invitation will expire in 7 days. If you have any questions, please contact {{inviterName}} at {{inviterEmail}}.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    
+    <mj-section padding="20px">
+      <mj-column>
+        <mj-text align="center" color="#666666" font-size="12px">
+          © {{currentYear}} Argus. All rights reserved.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

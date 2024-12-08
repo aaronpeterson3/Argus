@@ -1,0 +1,14 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Argus.Abstractions", "src\Argus.Abstractions\Argus.Abstractions.csproj", "{12345678-1234-1234-1234-123456789012}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Argus.Grains", "src\Argus.Grains\Argus.Grains.csproj", "{23456789-2345-2345-2345-234567890123}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Argus.Infrastructure", "src\Argus.Infrastructure\Argus.Infrastructure.csproj", "{34567890-3456-3456-3456-345678901234}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Argus.Api", "src\Argus.Api\Argus.Api.csproj", "{45678901-4567-4567-4567-456789012345}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Argus.Tests", "src\Argus.Tests\Argus.Tests.csproj", "{56789012-5678-5678-5678-567890123456}"
+EndProject
