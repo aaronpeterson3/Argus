@@ -3,6 +3,11 @@ using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Sinks.Elasticsearch;
 using Argus.Infrastructure.Logging;
+using Argus.Infrastructure.Authorization.Cedar;
+using Argus.Infrastructure.Data;
+using Argus.Infrastructure.Email;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +21,7 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithEnvironment(builder.Environment.EnvironmentName)
     .WriteTo.Debug()
     .WriteTo.Console(new Serilog.Formatting.Json.JsonFormatter())
-    .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://localhost:9200"))
+    .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(builder.Configuration["Elasticsearch:Url"]))
     {
         AutoRegisterTemplate = true,
         IndexFormat = $"argus-logs-{0:yyyy.MM}",
@@ -29,27 +34,101 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// Add logging services
-builder.Services.AddScoped<AuditLogger>();
-builder.Services.AddScoped<MetricsLogger>();
+// Configure Services
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Add API versioning
+builder.Services.AddApiVersioningSupport();
+
+// Configure API security
+builder.Services.Configure<ApiSecurityOptions>(builder.Configuration.GetSection("ApiSecurity"));
+
+// Configure Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.ASCII.GetBytes(builder.Configuration["Auth:JwtSecret"])),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+// Configure Authorization
+builder.Services.AddScoped<IAuthorizationService, CedarAuthorization>();
+
+// Configure Database
+builder.Services.AddSingleton<IDbConnectionFactory>(sp => 
+    new NpgsqlConnectionFactory(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Configure Orleans
+builder.Host.UseOrleans((context, siloBuilder) =>
+{
+    var orleansConfig = context.Configuration.GetSection("Orleans").Get<OrleansConfig>();
+    
+    siloBuilder
+        .UseLocalhostClustering(
+            orleansConfig.SiloPort,
+            orleansConfig.GatewayPort)
+        .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(UserGrain).Assembly).WithReferences())
+        .AddMemoryGrainStorage("PubSubStore")
+        .Configure<ClusterOptions>(options =>
+        {
+            options.ClusterId = orleansConfig.ClusterId;
+            options.ServiceId = orleansConfig.ServiceId;
+        });
+});
+
+// Configure Repositories
+builder.Services.AddScoped<ITenantRepository, TenantRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// Configure Email Service
+builder.Services.Configure<EmailConfig>(builder.Configuration.GetSection("Email"));
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 var app = builder.Build();
 
-// Add request logging middleware
-app.UseMiddleware<RequestLogContextMiddleware>();
-
-// Global exception handler
-app.Use(async (context, next) =>
+// Configure HTTP request pipeline
+if (app.Environment.IsDevelopment())
 {
-    try
-    {
-        await next();
-    }
-    catch (Exception ex)
-    {
-        Log.Error(ex, "Unhandled exception occurred");
-        throw;
-    }
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+
+// Add security headers
+app.Use((context, next) =>
+{
+    context.Response.Headers.Add("X-Frame-Options", "DENY");
+    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Add("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Add("Content-Security-Policy", "default-src 'self'");
+    return next();
 });
 
-// Rest of your Program.cs configuration
+// Add custom middleware
+app.UseMiddleware<RequestLogContextMiddleware>();
+app.UseMiddleware<ApiSecurityMiddleware>();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+// Global exception handler
+app.UseExceptionHandler(new ExceptionHandlerOptions
+{
+    ExceptionHandler = new GlobalExceptionHandler(app.Services.GetRequiredService<ILogger<GlobalExceptionHandler>>(),
+                                                app.Environment).HandleAsync
+});
+
+app.Run();
