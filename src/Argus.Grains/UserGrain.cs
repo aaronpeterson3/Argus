@@ -9,22 +9,31 @@ using Argus.Api;
 
 namespace Argus.Grains
 {
+    /// <summary>
+    /// Implementation of the user management grain
+    /// </summary>
     public class UserGrain : Grain, IUserGrain
     {
         private readonly PasswordHashConfig _passwordConfig;
         private UserState state;
         private string passwordHash;
 
+        /// <summary>
+        /// Initializes a new instance of the UserGrain class
+        /// </summary>
+        /// <param name="options">Orleans configuration options</param>
         public UserGrain(IOptions<OrleansConfig> options)
         {
             _passwordConfig = options.Value.PasswordHashConfig;
         }
 
+        /// <inheritdoc/>
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
             await base.OnActivateAsync(cancellationToken);
         }
 
+        /// <inheritdoc/>
         public async Task<bool> CreateAsync(string email, string password, UserProfile profile)
         {
             if (state != null)
@@ -41,6 +50,7 @@ namespace Argus.Grains
             return true;
         }
 
+        /// <inheritdoc/>
         public Task<bool> ValidateCredentialsAsync(string password)
         {
             if (state == null)
@@ -49,6 +59,7 @@ namespace Argus.Grains
             return Task.FromResult(VerifyPassword(password, passwordHash));
         }
 
+        /// <inheritdoc/>
         public Task<bool> ChangePasswordAsync(string currentPassword, string newPassword)
         {
             if (!VerifyPassword(currentPassword, passwordHash))
@@ -58,11 +69,17 @@ namespace Argus.Grains
             return Task.FromResult(true);
         }
 
+        /// <inheritdoc/>
         public Task<UserState> GetStateAsync()
         {
             return Task.FromResult(state);
         }
 
+        /// <summary>
+        /// Hashes a password using PBKDF2 with a random salt
+        /// </summary>
+        /// <param name="password">Password to hash</param>
+        /// <returns>Combined salt and hash string</returns>
         private string HashPassword(string password)
         {
             byte[] salt = new byte[128 / 8];
@@ -81,6 +98,12 @@ namespace Argus.Grains
             return $"{Convert.ToBase64String(salt)}.{hashed}";
         }
 
+        /// <summary>
+        /// Verifies a password against a stored hash
+        /// </summary>
+        /// <param name="password">Password to verify</param>
+        /// <param name="hashedPassword">Stored password hash with salt</param>
+        /// <returns>True if password matches, false otherwise</returns>
         private bool VerifyPassword(string password, string hashedPassword)
         {
             var parts = hashedPassword.Split('.');
