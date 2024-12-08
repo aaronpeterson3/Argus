@@ -1,3 +1,4 @@
+using Argus.Infrastructure.Encryption;
 using Dapper;
 
 namespace Argus.Infrastructure.Data.Repositories

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Argus.Abstractions.Models;
 using Orleans;
 
 namespace Argus.Abstractions
