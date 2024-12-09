@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
+
 namespace Argus.Api.Versioning
 {
     public static class ApiVersioningExtensions
