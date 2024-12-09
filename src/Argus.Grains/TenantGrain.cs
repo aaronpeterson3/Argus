@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Runtime;
 using Argus.Abstractions.Grains;
-using Argus.Abstractions.Models;
+using TenantGrains = Argus.Abstractions.Grains;
 using System.Security.Cryptography;
 
 namespace Argus.Grains;
@@ -10,14 +10,14 @@ namespace Argus.Grains;
 [StorageProvider(ProviderName = "tenant-store")]
 public class TenantGrain : Grain, ITenantGrain
 {
-    private readonly IPersistentState<TenantState> _state;
-    private readonly IPersistentState<Dictionary<string, TenantInvite>> _invites;
+    private readonly IPersistentState<TenantGrains.TenantState> _state;
+    private readonly IPersistentState<Dictionary<string, TenantGrains.TenantInvite>> _invites;
     private readonly ILogger<TenantGrain> _logger;
-    private readonly List<TenantUserInfo> _users = new();
+    private readonly List<TenantGrains.TenantUserInfo> _users = new();
 
     public TenantGrain(
-        [PersistentState("tenant")] IPersistentState<TenantState> state,
-        [PersistentState("invites")] IPersistentState<Dictionary<string, TenantInvite>> invites,
+        [PersistentState("tenant")] IPersistentState<TenantGrains.TenantState> state,
+        [PersistentState("invites")] IPersistentState<Dictionary<string, TenantGrains.TenantInvite>> invites,
         ILogger<TenantGrain> logger)
     {
         _state = state;
@@ -31,12 +31,12 @@ public class TenantGrain : Grain, ITenantGrain
         _logger.LogInformation("Activated tenant grain {TenantId}", this.GetPrimaryKey());
         
         if (_invites.State == null)
-            _invites.State = new Dictionary<string, TenantInvite>();
+            _invites.State = new Dictionary<string, TenantGrains.TenantInvite>();
     }
 
-    public Task<TenantState> GetStateAsync() => Task.FromResult(_state.State);
+    public Task<TenantGrains.TenantState> GetStateAsync() => Task.FromResult(_state.State);
 
-    public async Task<bool> UpdateAsync(TenantState state)
+    public async Task<bool> UpdateAsync(TenantGrains.TenantState state)
     {
         try
         {
@@ -58,7 +58,7 @@ public class TenantGrain : Grain, ITenantGrain
             if (_users.Any(u => u.UserId == userId))
                 return Task.FromResult(false);
 
-            _users.Add(new TenantUserInfo(userId, role, DateTime.UtcNow));
+            _users.Add(new TenantGrains.TenantUserInfo(userId, role, DateTime.UtcNow));
             return Task.FromResult(true);
         }
         catch (Exception ex)
@@ -102,7 +102,7 @@ public class TenantGrain : Grain, ITenantGrain
         }
     }
 
-    public Task<IEnumerable<TenantUserInfo>> GetUsersAsync() => 
+    public Task<IEnumerable<TenantGrains.TenantUserInfo>> GetUsersAsync() => 
         Task.FromResult(_users.AsEnumerable());
 
     public async Task<string> InviteUserAsync(string email, string role, Guid invitedBy)
@@ -110,7 +110,7 @@ public class TenantGrain : Grain, ITenantGrain
         try
         {
             var token = GenerateInviteToken();
-            var invite = new TenantInvite(
+            var invite = new TenantGrains.TenantInvite(
                 email,
                 role,
                 invitedBy,
