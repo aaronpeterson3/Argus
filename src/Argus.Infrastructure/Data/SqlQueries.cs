@@ -26,5 +26,19 @@ public static class SqlQueries
             VALUES (@Id, @Name, @Subdomain, @LogoUrl, @CreatedAt, @Settings::jsonb)
             RETURNING id
             """;
+            
+        public const string Update = """
+            UPDATE tenants
+            SET name = @Name,
+                subdomain = @Subdomain,
+                logo_url = @LogoUrl,
+                settings = @Settings::jsonb
+            WHERE id = @Id
+            """;
+            
+        public const string Delete = """
+            DELETE FROM tenants
+            WHERE id = @Id
+            """;
     }
 }
