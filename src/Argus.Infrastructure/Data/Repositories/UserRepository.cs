@@ -1,4 +1,3 @@
-using System.Data;
 using Argus.Infrastructure.Data.DTOs;
 using Argus.Infrastructure.Data.Interfaces;
 using Argus.Infrastructure.Encryption;
@@ -71,8 +70,6 @@ namespace Argus.Infrastructure.Data.Repositories
 
             try
             {
-                user.Id = Guid.NewGuid();
-                user.CreatedAt = DateTime.UtcNow;
                 user.IsActive = true;
 
                 var id = await connection.QuerySingleAsync<Guid>(
