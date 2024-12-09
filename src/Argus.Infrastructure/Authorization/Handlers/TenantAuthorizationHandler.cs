@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Argus.Infrastructure.Authorization.Requirements;
 using Argus.Infrastructure.Authorization.Services;
 
 namespace Argus.Infrastructure.Authorization.Handlers;
 
-public class TenantAuthorizationHandler : AuthorizationHandler<TenantPermissionRequirement>
+public class TenantAuthorizationHandler : 
+    AuthorizationHandler<TenantPermissionRequirement>, IAuthorizationHandler
 {
     private readonly IHttpContextAccessor _httpContext;
     private readonly ITenantPermissionService _permissionService;
