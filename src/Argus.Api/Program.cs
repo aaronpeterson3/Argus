@@ -9,6 +9,8 @@ using Argus.Infrastructure.Logging;
 using Argus.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Orleans.Configuration;
 using Serilog;
@@ -89,7 +91,9 @@ builder.Host.UseOrleans((context, siloBuilder) =>
             orleansConfig.GatewayPort)
         .ConfigureServices(services =>
         {
-            services.AddApplicationPart(typeof(UserGrain).Assembly).WithReferences();
+            var manager = new ApplicationPartManager();
+            manager.ApplicationParts.Add(new AssemblyPart(typeof(UserGrain).Assembly));
+            services.AddSingleton(manager);
         })
         .AddMemoryGrainStorage("PubSubStore")
         .Configure<ClusterOptions>(options =>
