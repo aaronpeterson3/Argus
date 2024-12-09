@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Orleans;
 using Argus.Abstractions;
 using Argus.Infrastructure.Services;
+using Argus.Api.Models;
 
 namespace Argus.Api.Controllers;
 
