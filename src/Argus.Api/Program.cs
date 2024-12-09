@@ -1,20 +1,18 @@
+using Argus.Grains;
+using Argus.Infrastructure.Authorization.Cedar;
+using Argus.Infrastructure.Configuration;
+using Argus.Infrastructure.Data;
+using Argus.Infrastructure.Extensions;
+using Argus.Infrastructure.Logging;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
+using Orleans.Configuration;
 using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
-using Serilog.Enrichers.Thread;
-using Serilog.Enrichers.Process;
 using Serilog.Sinks.Elasticsearch;
-using Argus.Infrastructure.Logging;
-using Argus.Infrastructure.Authorization.Cedar;
-using Argus.Infrastructure.Data.Interfaces;
-using Argus.Infrastructure.Data.Repositories;
-using Argus.Infrastructure.Extensions;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using Orleans.Runtime;
-using Orleans.Hosting;
-using Orleans.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,8 +70,8 @@ builder.Services.AddInfrastructure();
 builder.Host.UseOrleans((context, siloBuilder) =>
 {
     var orleansConfig = context.Configuration.GetSection("Orleans").Get<OrleansConfig>();
-    
-    siloBuilder
+
+    _ = siloBuilder
         .UseLocalhostClustering(
             orleansConfig.SiloPort,
             orleansConfig.GatewayPort)
