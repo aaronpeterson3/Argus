@@ -1,3 +1,6 @@
+using Dapper;
+using System.Text;
+
 namespace Argus.Infrastructure.Data.QueryHelpers
 {
     public class SqlBuilder

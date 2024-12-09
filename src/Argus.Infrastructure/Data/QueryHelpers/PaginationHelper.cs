@@ -1,3 +1,6 @@
+using Dapper;
+using System.Data;
+
 namespace Argus.Infrastructure.Data.QueryHelpers
 {
     /// <summary>

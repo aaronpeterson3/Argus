@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.DataProtection;
-using System.Security.Cryptography;
 
 namespace Argus.Infrastructure.Encryption
 {

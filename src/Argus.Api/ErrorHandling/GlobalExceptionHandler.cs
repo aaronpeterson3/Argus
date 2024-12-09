@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Diagnostics;
+using System.ComponentModel.DataAnnotations;
+
 namespace Argus.Api.ErrorHandling
 {
     public class GlobalExceptionHandler : IExceptionHandler

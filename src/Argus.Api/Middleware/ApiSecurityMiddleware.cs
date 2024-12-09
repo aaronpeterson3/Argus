@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using System.Text.RegularExpressions;
 
 namespace Argus.Api.Middleware
