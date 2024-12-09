@@ -1,5 +1,7 @@
 using Argus.Grains;
-using Argus.Infrastructure.Authorization.Cedar;
+using Argus.Infrastructure.Authorization;
+using Argus.Infrastructure.Authorization.Handlers;
+using Argus.Infrastructure.Authorization.Services;
 using Argus.Infrastructure.Configuration;
 using Argus.Infrastructure.Data;
 using Argus.Infrastructure.Extensions;
@@ -66,6 +68,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Configure Infrastructure
 builder.Services.AddInfrastructure();
 
+// Configure Authorization
+builder.Services.AddTenantAuthorization();
+builder.Services.AddScoped<IAuthorizationHandler, TenantAuthorizationHandler>();
+builder.Services.AddScoped<ITenantPermissionService, TenantPermissionService>();
+builder.Services.AddHttpContextAccessor();
+
 // Configure Orleans
 builder.Host.UseOrleans((context, siloBuilder) =>
 {
@@ -90,10 +98,6 @@ builder.Host.UseOrleans((context, siloBuilder) =>
 // Configure Database
 builder.Services.AddSingleton<IDbConnectionFactory>(sp => 
     new NpgsqlConnectionFactory(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Configure Authorization
-builder.Services.Configure<CedarAuthorizationOptions>(builder.Configuration.GetSection("Cedar"));
-builder.Services.AddScoped<IAuthorizationService, CedarAuthorization>();
 
 var app = builder.Build();
 
