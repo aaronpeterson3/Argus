@@ -10,6 +10,8 @@ public interface ITenantGrain : IGrainWithGuidKey
     Task<bool> RemoveUserAsync(Guid userId);
     Task<bool> UpdateUserRoleAsync(Guid userId, string role);
     Task<IEnumerable<TenantUserInfo>> GetUsersAsync();
+    Task<string> InviteUserAsync(string email, string role, Guid invitedBy);
+    Task<bool> AcceptInviteAsync(string email, string inviteToken);
 }
 
 public record TenantState(
@@ -27,4 +29,12 @@ public record TenantUserInfo(
     Guid UserId,
     string Role,
     DateTime AddedAt
+);
+
+public record TenantInvite(
+    string Email,
+    string Role,
+    Guid InvitedBy,
+    string Token,
+    DateTime ExpiresAt
 );
