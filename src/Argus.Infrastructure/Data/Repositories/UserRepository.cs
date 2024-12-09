@@ -1,3 +1,4 @@
+using System.Data;
 using Argus.Infrastructure.Data.DTOs;
 using Argus.Infrastructure.Data.Interfaces;
 using Argus.Infrastructure.Encryption;
@@ -33,8 +34,8 @@ namespace Argus.Infrastructure.Data.Repositories
 
         public UserRepository(IDbConnectionFactory connectionFactory, IDataEncryption encryption)
         {
-            _connectionFactory = connectionFactory;
-            _encryption = encryption;
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
+            _encryption = encryption ?? throw new ArgumentNullException(nameof(encryption));
         }
 
         public async Task<UserDto> GetByIdAsync(Guid id)
@@ -63,6 +64,8 @@ namespace Argus.Infrastructure.Data.Repositories
 
         public async Task<Guid> CreateAsync(UserDto user)
         {
+            if (user == null) throw new ArgumentNullException(nameof(user));
+            
             using var connection = _connectionFactory.CreateConnection();
             using var transaction = connection.BeginTransaction();
 
@@ -89,6 +92,8 @@ namespace Argus.Infrastructure.Data.Repositories
 
         public async Task UpdateAsync(UserDto user)
         {
+            if (user == null) throw new ArgumentNullException(nameof(user));
+            
             using var connection = _connectionFactory.CreateConnection();
             await connection.ExecuteAsync(@"
                 UPDATE users 
@@ -110,6 +115,9 @@ namespace Argus.Infrastructure.Data.Repositories
 
         public async Task<bool> ValidateCredentialsAsync(string email, string password)
         {
+            if (string.IsNullOrEmpty(email)) throw new ArgumentNullException(nameof(email));
+            if (string.IsNullOrEmpty(password)) throw new ArgumentNullException(nameof(password));
+            
             var user = await GetByEmailAsync(email);
             if (user == null) return false;
 
