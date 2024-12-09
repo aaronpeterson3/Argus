@@ -52,12 +52,12 @@ public sealed class TenantRepository : ITenantRepository
                 newTenant,
                 transaction);
 
-            await transaction.CommitAsync();
+            transaction.Commit();
             return newTenant.Id;
         }
         catch
         {
-            await transaction.RollbackAsync();
+            transaction.Rollback();
             throw;
         }
     }
