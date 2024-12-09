@@ -1,18 +1,19 @@
-namespace Argus.Infrastructure.Data.DTOs
+namespace Argus.Infrastructure.Data.DTOs;
+
+public sealed class UserDto(
+    Guid id,
+    string email,
+    string firstName,
+    string lastName,
+    string? displayName = null)
 {
-    /// <summary>
-    /// Data Transfer Object for User information
-    /// </summary>
-    public class UserDto
-    {
-        public Guid Id { get; set; }
-        public string Email { get; set; }
-        public string PasswordHash { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string DisplayName { get; set; }
-        public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? LastLoginAt { get; set; }
-    }
+    public Guid Id { get; init; } = id;
+    public string Email { get; init; } = email;
+    public string PasswordHash { get; set; } = string.Empty;
+    public string FirstName { get; init; } = firstName;
+    public string LastName { get; init; } = lastName;
+    public string? DisplayName { get; init; } = displayName;
+    public bool IsActive { get; set; } = true;
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime? LastLoginAt { get; set; }
 }
