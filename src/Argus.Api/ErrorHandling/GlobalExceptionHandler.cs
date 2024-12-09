@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
+using Argus.Infrastructure.Common;
 
 namespace Argus.Api.ErrorHandling
 {
