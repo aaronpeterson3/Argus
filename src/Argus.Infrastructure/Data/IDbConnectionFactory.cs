@@ -1,3 +1,6 @@
+using Npgsql;
+using System.Data;
+
 namespace Argus.Infrastructure.Data
 {
     public interface IDbConnectionFactory

@@ -1,7 +1,7 @@
-using Argus.Infrastructure.Encryption;
-using Dapper;
 using Argus.Infrastructure.Data.DTOs;
 using Argus.Infrastructure.Data.Interfaces;
+using Argus.Infrastructure.Encryption;
+using Dapper;
 
 namespace Argus.Infrastructure.Data.Repositories
 {
@@ -68,12 +68,12 @@ namespace Argus.Infrastructure.Data.Repositories
                     tenant,
                     transaction);
 
-                await transaction.CommitAsync();
+                transaction.Commit();
                 return id;
             }
             catch
             {
-                await transaction.RollbackAsync();
+                transaction.Rollback();
                 throw;
             }
         }

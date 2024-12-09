@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+
 namespace Argus.Api.Middleware
 {
     [AttributeUsage(AttributeTargets.Method)]

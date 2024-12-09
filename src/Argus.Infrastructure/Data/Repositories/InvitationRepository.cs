@@ -1,3 +1,4 @@
+using Argus.Infrastructure.Data.Interfaces;
 using Dapper;
 
 namespace Argus.Infrastructure.Data.Repositories

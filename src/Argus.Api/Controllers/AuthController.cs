@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Orleans;
 using Argus.Abstractions;
 using Argus.Api.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Argus.Api.Controllers
 {
