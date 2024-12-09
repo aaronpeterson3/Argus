@@ -1,25 +1,30 @@
-namespace Argus.Infrastructure.Data
+namespace Argus.Infrastructure.Data;
+
+public static class SqlQueries
 {
-    public static class SqlQueries
+    public static class Tenants
     {
-        public const string GetTenantById = @"
-            SELECT id, name, subdomain, created_at, settings, logo_url
+        public const string SelectById = """
+            SELECT id, name, subdomain, logo_url, created_at, settings
             FROM tenants
-            WHERE id = @Id";
+            WHERE id = @Id
+            """;
 
-        public const string CreateTenant = @"
-            INSERT INTO tenants (id, name, subdomain, settings, logo_url)
-            VALUES (@Id, @Name, @Subdomain, @Settings, @LogoUrl)
-            RETURNING id";
+        public const string SelectBySubdomain = """
+            SELECT id, name, subdomain, logo_url, created_at, settings
+            FROM tenants
+            WHERE subdomain = @Subdomain
+            """;
 
-        public const string GetUserTenants = @"
-            SELECT t.*, ut.role
-            FROM tenants t
-            INNER JOIN user_tenants ut ON t.id = ut.tenant_id
-            WHERE ut.user_id = @UserId AND ut.status = 'Active'";
+        public const string SelectAll = """
+            SELECT id, name, subdomain, logo_url, created_at, settings
+            FROM tenants
+            """;
 
-        public const string AddUserToTenant = @"
-            INSERT INTO user_tenants (user_id, tenant_id, role, status, invited_by, invited_at)
-            VALUES (@UserId, @TenantId, @Role, @Status, @InvitedBy, @InvitedAt)";
+        public const string Insert = """
+            INSERT INTO tenants (id, name, subdomain, logo_url, created_at, settings)
+            VALUES (@Id, @Name, @Subdomain, @LogoUrl, @CreatedAt, @Settings::jsonb)
+            RETURNING id
+            """;
     }
 }
