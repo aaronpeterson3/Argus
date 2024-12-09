@@ -1,6 +1,7 @@
-using Dapper;
 using Argus.Infrastructure.Data.DTOs;
 using Argus.Infrastructure.Data.Interfaces;
+using Argus.Infrastructure.Encryption;
+using Dapper;
 using static Argus.Infrastructure.Data.SqlQueries;
 
 namespace Argus.Infrastructure.Data.Repositories;
@@ -45,7 +46,7 @@ public sealed class TenantRepository : ITenantRepository
 
         try
         {
-            var newTenant = tenant with { Id = Guid.NewGuid() };
+            TenantDto newTenant = new TenantDto(Guid.NewGuid(), tenant.Subdomain, tenant.LogoUrl, tenant.Name);
             
             await connection.ExecuteAsync(
                 Tenants.Insert,
