@@ -1,2 +1,2 @@
-// Add JWT service registration
-builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+using Argus.Infrastructure.Extensions;
+// rest of usings remain the same
