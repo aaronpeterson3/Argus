@@ -5,13 +5,18 @@ using static Argus.Infrastructure.Data.SqlQueries;
 
 namespace Argus.Infrastructure.Data.Repositories;
 
-public sealed class TenantRepository(IDbConnectionFactory connectionFactory, IDataEncryption encryption) : ITenantRepository
+public sealed class TenantRepository : ITenantRepository
 {
-    private readonly IDbConnectionFactory _connectionFactory = connectionFactory;
-    private readonly IDataEncryption _encryption = encryption;
-    private static readonly string[] BasicColumns = ["id", "name", "subdomain", "logo_url", "created_at", "settings"];
+    private readonly IDbConnectionFactory _connectionFactory;
+    private readonly IDataEncryption _encryption;
 
-    public async Task<TenantDto> GetByIdAsync(TenantId id)
+    public TenantRepository(IDbConnectionFactory connectionFactory, IDataEncryption encryption)
+    {
+        _connectionFactory = connectionFactory;
+        _encryption = encryption;
+    }
+
+    public async Task<TenantDto> GetByIdAsync(Guid id)
     {
         using var connection = _connectionFactory.CreateConnection();
         return await connection.QuerySingleOrDefaultAsync<TenantDto>(
@@ -33,25 +38,39 @@ public sealed class TenantRepository(IDbConnectionFactory connectionFactory, IDa
         return await connection.QueryAsync<TenantDto>(Tenants.SelectAll);
     }
 
-    public async Task<TenantId> CreateAsync(TenantDto tenant)
+    public async Task<Guid> CreateAsync(TenantDto tenant)
     {
         using var connection = _connectionFactory.CreateConnection();
         using var transaction = connection.BeginTransaction();
 
         try
         {
-            var id = await connection.QuerySingleAsync<TenantId>(
+            var newTenant = tenant with { Id = Guid.NewGuid() };
+            
+            await connection.ExecuteAsync(
                 Tenants.Insert,
-                tenant with { Id = TenantId.NewGuid() },
+                newTenant,
                 transaction);
 
             await transaction.CommitAsync();
-            return id;
+            return newTenant.Id;
         }
         catch
         {
             await transaction.RollbackAsync();
             throw;
         }
+    }
+    
+    public async Task UpdateAsync(TenantDto tenant)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.ExecuteAsync(Tenants.Update, tenant);
+    }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.ExecuteAsync(Tenants.Delete, new { Id = id });
     }
 }
