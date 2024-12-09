@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Argus.Abstractions;
-using Argus.Api;
+using Argus.Abstractions.Models;
 
 namespace Argus.Grains
 {
@@ -108,6 +108,40 @@ namespace Argus.Grains
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during password change for {Email}", state?.Email);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> ResetPasswordAsync(string token, string newPassword)
+        {
+            try
+            {
+                // Token validation would go here
+                passwordHash = HashPassword(newPassword);
+                _logger.LogInformation("Successfully reset password for {Email}", state?.Email);
+                return Task.FromResult(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during password reset for {Email}", state?.Email);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public Task<string> RequestPasswordResetAsync(string email)
+        {
+            try
+            {
+                // Generate and store reset token
+                string token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+                _logger.LogInformation("Generated password reset token for {Email}", email);
+                return Task.FromResult(token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating password reset token for {Email}", email);
                 throw;
             }
         }
