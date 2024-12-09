@@ -1,6 +1,8 @@
+using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Runtime;
 using Argus.Abstractions.Grains;
+using Argus.Abstractions.Models;
 using System.Security.Cryptography;
 
 namespace Argus.Grains;
@@ -49,54 +51,54 @@ public class TenantGrain : Grain, ITenantGrain
         }
     }
 
-    public async Task<bool> AddUserAsync(Guid userId, string role)
+    public Task<bool> AddUserAsync(Guid userId, string role)
     {
         try
         {
             if (_users.Any(u => u.UserId == userId))
-                return false;
+                return Task.FromResult(false);
 
             _users.Add(new TenantUserInfo(userId, role, DateTime.UtcNow));
-            return true;
+            return Task.FromResult(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to add user {UserId} to tenant {TenantId}", 
                 userId, this.GetPrimaryKey());
-            return false;
+            return Task.FromResult(false);
         }
     }
 
-    public async Task<bool> RemoveUserAsync(Guid userId)
+    public Task<bool> RemoveUserAsync(Guid userId)
     {
         try
         {
-            return _users.RemoveAll(u => u.UserId == userId) > 0;
+            return Task.FromResult(_users.RemoveAll(u => u.UserId == userId) > 0);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to remove user {UserId} from tenant {TenantId}", 
                 userId, this.GetPrimaryKey());
-            return false;
+            return Task.FromResult(false);
         }
     }
 
-    public async Task<bool> UpdateUserRoleAsync(Guid userId, string role)
+    public Task<bool> UpdateUserRoleAsync(Guid userId, string role)
     {
         try
         {
             var user = _users.FirstOrDefault(u => u.UserId == userId);
-            if (user == null) return false;
+            if (user == null) return Task.FromResult(false);
 
             var index = _users.IndexOf(user);
             _users[index] = user with { Role = role };
-            return true;
+            return Task.FromResult(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update role for user {UserId} in tenant {TenantId}", 
                 userId, this.GetPrimaryKey());
-            return false;
+            return Task.FromResult(false);
         }
     }
 
