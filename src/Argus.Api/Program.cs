@@ -6,6 +6,7 @@ using Argus.Infrastructure.Configuration;
 using Argus.Infrastructure.Data;
 using Argus.Infrastructure.Extensions;
 using Argus.Infrastructure.Logging;
+using Argus.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -73,6 +74,9 @@ builder.Services.AddTenantAuthorization();
 builder.Services.AddScoped<IAuthorizationHandler, TenantAuthorizationHandler>();
 builder.Services.AddScoped<ITenantPermissionService, TenantPermissionService>();
 builder.Services.AddHttpContextAccessor();
+
+// Add JWT service
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 // Configure Orleans
 builder.Host.UseOrleans((context, siloBuilder) =>
