@@ -7,12 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Elastic.CommonSchema.Serilog" Version="8.12.3" />
     <PackageReference Include="Elastic.Serilog.Sinks" Version="8.12.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
-    <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.0" />
-    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="9.0.0" />
     <PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="8.3.0" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.3.0" />
     <PackageReference Include="Microsoft.Orleans.Server" Version="8.0.0" />
