@@ -1,8 +1,18 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Mjml.Net;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Argus.Infrastructure.Email
 {
-    public class EmailTemplateService
+    public interface IEmailTemplateService
+    {
+        Task<string> RenderInvitationEmail(InvitationEmailModel model);
+    }
+
+    public class EmailTemplateService : IEmailTemplateService
     {
         private readonly IMjmlRenderer _mjmlRenderer;
         private readonly IWebHostEnvironment _environment;
