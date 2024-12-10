@@ -1,3 +1,6 @@
+using Argus.Infrastructure.Authorization.Requirements;
+using Argus.Infrastructure.Data;
+
 namespace Argus.Infrastructure.Authorization.Services;
 
 public interface ITenantPermissionService
