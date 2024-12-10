@@ -1,5 +1,4 @@
 using Argus.Grains;
-using Argus.Infrastructure.Authorization;
 using Argus.Infrastructure.Authorization.Handlers;
 using Argus.Infrastructure.Authorization.Services;
 using Argus.Infrastructure.Configuration;
@@ -7,18 +6,16 @@ using Argus.Infrastructure.Data;
 using Argus.Infrastructure.Extensions;
 using Argus.Infrastructure.Logging;
 using Argus.Infrastructure.Services;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
-using Microsoft.AspNetCore.Mvc.Versioning;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Orleans.Configuration;
 using Serilog;
 using Serilog.Events;
 using Serilog.Exceptions;
-using Serilog.Sinks.Elasticsearch;
+using Serilog.Sinks.OpenSearch;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,15 +32,14 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithThreadId()
     .WriteTo.Debug()
     .WriteTo.Console(new Serilog.Formatting.Json.JsonFormatter())
-    .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(builder.Configuration["Elasticsearch:Url"]))
-    {
-        AutoRegisterTemplate = true,
-        IndexFormat = $"argus-logs-{0:yyyy.MM}",
-        InlineFields = true,
-        EmitEventFailure = EmitEventFailureHandling.WriteToSelfLog |
-                         EmitEventFailureHandling.WriteToFailureSink |
-                         EmitEventFailureHandling.RaiseCallback
-    })
+.WriteTo.OpenSearch(new OpenSearchSinkOptions(new Uri(builder.Configuration["Elasticsearch:Url"]))
+{
+    IndexFormat = $"argus-logs-{0:yyyy.MM}",
+    BatchAction = OpenOpType.Create,
+    FailureCallback = e => Console.WriteLine("Failed to submit event " + e.MessageTemplate),
+    EmitEventFailure = EmitEventFailureHandling.WriteToFailureSink |
+                     EmitEventFailureHandling.WriteToSelfLog
+})
     .CreateLogger();
 
 builder.Host.UseSerilog();

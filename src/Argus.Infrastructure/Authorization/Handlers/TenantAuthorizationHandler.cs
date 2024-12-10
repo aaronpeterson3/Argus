@@ -1,8 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Argus.Infrastructure.Authorization.Requirements;
 using Argus.Infrastructure.Authorization.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 
 namespace Argus.Infrastructure.Authorization.Handlers;
 
