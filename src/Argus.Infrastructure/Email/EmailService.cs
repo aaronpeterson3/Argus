@@ -1,41 +1,46 @@
-namespace Argus.Infrastructure.Email
+using Microsoft.Extensions.Logging;
+using System.Net.Mail;
+using System.Net;
+
+namespace Argus.Infrastructure.Email;
+
+public class EmailService : IEmailService
 {
-    public class EmailService
+    private readonly ILogger<EmailService> _logger;
+    private readonly EmailConfig _config;
+
+    public EmailService(ILogger<EmailService> logger, EmailConfig config)
     {
-        private readonly EmailTemplateService _templateService;
-        private readonly ILogger<EmailService> _logger;
-        private readonly EmailConfig _config;
+        _logger = logger;
+        _config = config;
+    }
 
-        public async Task SendInvitationEmail(InvitationEmailModel model)
+    public async Task SendEmailAsync(string to, string subject, string body)
+    {
+        var message = new MailMessage
         {
-            try
-            {
-                var htmlContent = await _templateService.RenderInvitationEmail(model);
-                
-                using var message = new MailMessage
-                {
-                    From = new MailAddress(_config.FromEmail, model.BusinessName),
-                    Subject = $"Join {model.BusinessName} on Argus",
-                    Body = htmlContent,
-                    IsBodyHtml = true
-                };
-                message.To.Add(model.InviteeName);
+            From = new MailAddress(_config.FromAddress),
+            Subject = subject,
+            Body = body,
+            IsBodyHtml = true
+        };
+        message.To.Add(to);
 
-                using var client = new SmtpClient(_config.SmtpServer)
-                {
-                    Port = _config.SmtpPort,
-                    Credentials = new NetworkCredential(_config.SmtpUsername, _config.SmtpPassword),
-                    EnableSsl = true
-                };
+        using var client = new SmtpClient(_config.SmtpServer, _config.SmtpPort)
+        {
+            Credentials = new NetworkCredential(_config.Username, _config.Password),
+            EnableSsl = true
+        };
 
-                await client.SendMailAsync(message);
-                _logger.LogInformation("Sent invitation email to {Email}", model.InviteeName);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to send invitation email to {Email}", model.InviteeName);
-                throw;
-            }
-        }
+        await client.SendMailAsync(message);
+        _logger.LogInformation("Email sent to {To}", to);
     }
 }
+
+public record EmailConfig(
+    string FromAddress,
+    string SmtpServer,
+    int SmtpPort,
+    string Username,
+    string Password
+);
