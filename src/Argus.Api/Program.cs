@@ -6,8 +6,6 @@ using Argus.Infrastructure.Data;
 using Argus.Infrastructure.Extensions;
 using Argus.Infrastructure.Logging;
 using Argus.Infrastructure.Services;
-using Asp.Versioning;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.IdentityModel.Tokens;

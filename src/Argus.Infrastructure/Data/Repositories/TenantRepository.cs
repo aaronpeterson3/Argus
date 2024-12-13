@@ -46,8 +46,12 @@ public sealed class TenantRepository : ITenantRepository
 
         try
         {
-            TenantDto newTenant = new TenantDto(Guid.NewGuid(), tenant.Subdomain, tenant.LogoUrl, tenant.Name);
-            
+            var newTenant = new TenantDto(
+                Guid.NewGuid(),
+                tenant.Name,
+                tenant.Subdomain,
+                tenant.LogoUrl);
+
             await connection.ExecuteAsync(
                 Tenants.Insert,
                 newTenant,
@@ -62,7 +66,7 @@ public sealed class TenantRepository : ITenantRepository
             throw;
         }
     }
-    
+
     public async Task UpdateAsync(TenantDto tenant)
     {
         using var connection = _connectionFactory.CreateConnection();
@@ -73,5 +77,15 @@ public sealed class TenantRepository : ITenantRepository
     {
         using var connection = _connectionFactory.CreateConnection();
         await connection.ExecuteAsync(Tenants.Delete, new { Id = id });
+    }
+
+    public async Task<bool> HasPermissionAsync(Guid userId, Guid tenantId, string permission)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        var result = await connection.QuerySingleOrDefaultAsync<int>(
+            Tenants.CheckPermission,
+            new { UserId = userId, TenantId = tenantId, Permission = permission });
+
+        return result > 0;
     }
 }

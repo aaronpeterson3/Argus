@@ -19,7 +19,7 @@ public class EmailService : IEmailService
     {
         var message = new MailMessage
         {
-            From = new MailAddress(_config.FromAddress),
+            From = new MailAddress(_config.FromEmail),
             Subject = subject,
             Body = body,
             IsBodyHtml = true
@@ -28,7 +28,7 @@ public class EmailService : IEmailService
 
         using var client = new SmtpClient(_config.SmtpServer, _config.SmtpPort)
         {
-            Credentials = new NetworkCredential(_config.Username, _config.Password),
+            Credentials = new NetworkCredential(_config.SmtpUsername, _config.SmtpPassword),
             EnableSsl = true
         };
 
@@ -36,11 +36,3 @@ public class EmailService : IEmailService
         _logger.LogInformation("Email sent to {To}", to);
     }
 }
-
-public record EmailConfig(
-    string FromAddress,
-    string SmtpServer,
-    int SmtpPort,
-    string Username,
-    string Password
-);

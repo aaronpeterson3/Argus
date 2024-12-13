@@ -1,5 +1,5 @@
 using Argus.Infrastructure.Authorization.Requirements;
-using Argus.Infrastructure.Data;
+using Argus.Infrastructure.Data.Interfaces;
 
 namespace Argus.Infrastructure.Authorization.Services;
 
