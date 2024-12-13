@@ -9,6 +9,7 @@ using Argus.Infrastructure.HealthChecks;
 using Argus.Infrastructure.Logging;
 using Argus.Infrastructure.Services;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.RateLimiting;
