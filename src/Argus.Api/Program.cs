@@ -82,7 +82,7 @@ if (string.IsNullOrEmpty(jwtSettings?.JwtSecret))
     throw new InvalidOperationException("JWT Secret is not configured");
 }
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication()
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -112,10 +112,7 @@ builder.Services.AddApiVersioning(options => {
     options.AssumeDefaultVersionWhenUnspecified = true;
     options.ReportApiVersions = true;
     options.ApiVersionReader = new HeaderApiVersionReader("api-version");
-});
-
-builder.Services.AddVersionedApiExplorer(options =>
-{
+}).AddApiExplorer(options => {
     options.GroupNameFormat = "'v'VVV";
     options.SubstituteApiVersionInUrl = true;
 });
