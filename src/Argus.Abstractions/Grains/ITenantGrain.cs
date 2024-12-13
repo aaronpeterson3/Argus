@@ -11,7 +11,8 @@ public interface ITenantGrain : IGrainWithGuidKey
     Task<bool> UpdateUserRoleAsync(Guid userId, string role);
     Task<IEnumerable<TenantUserInfo>> GetUsersAsync();
     Task<string> InviteUserAsync(string email, string role, Guid invitedBy);
-    Task<bool> AcceptInviteAsync(string email, string inviteToken);
+    Task<(bool Success, string Role)> ValidateInviteAsync(string email, string inviteToken);
+    Task<bool> AcceptInviteAsync(string email, string inviteToken, Guid userId);
 }
 
 public record TenantState(
@@ -23,6 +24,7 @@ public record TenantState(
 )
 {
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public bool IsActive { get; init; } = true;
 }
 
 public record TenantUserInfo(
