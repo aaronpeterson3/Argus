@@ -2,12 +2,6 @@ using Microsoft.AspNetCore.DataProtection;
 
 namespace Argus.Infrastructure.Encryption
 {
-    public interface IDataEncryption
-    {
-        string Encrypt(string plainText);
-        string Decrypt(string cipherText);
-    }
-
     public class DatabaseEncryption : IDataEncryption
     {
         private readonly IDataProtectionProvider _dataProtection;

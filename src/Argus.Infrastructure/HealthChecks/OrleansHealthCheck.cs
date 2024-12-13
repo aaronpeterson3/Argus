@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Orleans;
+using Orleans.Runtime;
 
 namespace Argus.Infrastructure.HealthChecks;
 

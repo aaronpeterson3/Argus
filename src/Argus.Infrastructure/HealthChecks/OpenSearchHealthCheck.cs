@@ -1,6 +1,6 @@
+using Argus.Infrastructure.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
-using Serilog.Sinks.OpenSearch;
 
 namespace Argus.Infrastructure.HealthChecks;
 
