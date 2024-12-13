@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 
 namespace Argus.Api.Versioning
 {
@@ -17,11 +20,8 @@ namespace Argus.Api.Versioning
                     new MediaTypeApiVersionReader("version"));
             });
 
-            services.AddVersionedApiExplorer(options =>
-            {
-                options.GroupNameFormat = "'v'VVV";
-                options.SubstituteApiVersionInUrl = true;
-            });
+            services.AddApiExplorer();
+            services.AddEndpointsApiExplorer();
 
             return services;
         }
