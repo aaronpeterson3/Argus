@@ -18,9 +18,7 @@ namespace Argus.Api.Versioning
                     new UrlSegmentApiVersionReader(),
                     new HeaderApiVersionReader("X-Api-Version"),
                     new MediaTypeApiVersionReader("version"));
-            });
-
-            services.AddVersionedApiExplorer(options =>
+            }).AddApiExplorer(options =>
             {
                 options.GroupNameFormat = "'v'VVV";
                 options.SubstituteApiVersionInUrl = true;
