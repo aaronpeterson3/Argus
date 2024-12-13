@@ -7,15 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Core packages -->
+    <!-- Authentication -->
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Orleans.Server" Version="8.0.0" />
     
     <!-- API Versioning -->
     <PackageReference Include="Asp.Versioning.Mvc" Version="7.1.0" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="7.1.0" />
     
-    <!-- Logging -->
+    <!-- OpenSearch and Logging -->
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0" />
     <PackageReference Include="Serilog.Enrichers.Process" Version="2.0.2" />
@@ -23,12 +22,22 @@
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
     <PackageReference Include="Serilog.Sinks.OpenSearch" Version="1.0.0" />
     
-    <!-- Documentation -->
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <!-- OpenTelemetry -->
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.7.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.7.0" />
     
     <!-- Health Checks -->
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="7.1.0" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.0" />
+    
+    <!-- Orleans -->
+    <PackageReference Include="Microsoft.Orleans.Server" Version="8.0.0" />
+    
+    <!-- Rate Limiting -->
+    <PackageReference Include="Microsoft.AspNetCore.RateLimiting" Version="7.0.0" />
+    
+    <!-- API Documentation -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
   <ItemGroup>
