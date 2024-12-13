@@ -7,12 +7,6 @@ using System.Text;
 
 namespace Argus.Infrastructure.Services;
 
-public interface IJwtTokenService
-{
-    string GenerateToken(string userId, string email, IEnumerable<string> roles);
-    ClaimsPrincipal ValidateToken(string token);
-}
-
 public class JwtTokenService : IJwtTokenService
 {
     private readonly AuthConfig _authConfig;

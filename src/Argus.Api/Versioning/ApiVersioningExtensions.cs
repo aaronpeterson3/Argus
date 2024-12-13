@@ -20,8 +20,11 @@ namespace Argus.Api.Versioning
                     new MediaTypeApiVersionReader("version"));
             });
 
-            services.AddApiExplorer();
-            services.AddEndpointsApiExplorer();
+            services.AddVersionedApiExplorer(options =>
+            {
+                options.GroupNameFormat = "'v'VVV";
+                options.SubstituteApiVersionInUrl = true;
+            });
 
             return services;
         }
