@@ -8,6 +8,7 @@ using Argus.Infrastructure.Extensions;
 using Argus.Infrastructure.HealthChecks;
 using Argus.Infrastructure.Logging;
 using Argus.Infrastructure.Services;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.RateLimiting;
@@ -20,6 +21,7 @@ using Serilog.Exceptions;
 using Serilog.Sinks.OpenSearch;
 using System.IO.Compression;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -112,7 +114,8 @@ builder.Services.AddApiVersioning(options => {
     options.ApiVersionReader = new HeaderApiVersionReader("api-version");
 });
 
-builder.Services.AddVersionedApiExplorer(options => {
+builder.Services.AddVersionedApiExplorer(options =>
+{
     options.GroupNameFormat = "'v'VVV";
     options.SubstituteApiVersionInUrl = true;
 });

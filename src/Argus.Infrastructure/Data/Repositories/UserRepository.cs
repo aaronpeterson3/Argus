@@ -118,7 +118,7 @@ namespace Argus.Infrastructure.Data.Repositories
             var user = await GetByEmailAsync(email);
             if (user == null) return false;
 
-            var hashedPassword = _encryption.Encrypt(password);
+            string hashedPassword = _encryption.Encrypt(password);
             return user.PasswordHash == hashedPassword;
         }
     }

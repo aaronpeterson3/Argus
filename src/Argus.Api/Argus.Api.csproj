@@ -34,7 +34,6 @@
     <PackageReference Include="Microsoft.Orleans.Server" Version="8.0.0" />
     
     <!-- Rate Limiting -->
-    <PackageReference Include="Microsoft.AspNetCore.RateLimiting" Version="7.0.0" />
     
     <!-- API Documentation -->
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
