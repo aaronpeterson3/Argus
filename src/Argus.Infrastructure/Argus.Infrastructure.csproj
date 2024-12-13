@@ -13,6 +13,7 @@
     <PackageReference Include="Mjml.Net" Version="4.5.0" />
     <PackageReference Include="Npgsql" Version="9.0.2" />
     <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,6 +24,11 @@
     <Content Include="Email\Templates\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Auth\" />
+    <Folder Include="Storage\" />
   </ItemGroup>
 
 </Project>

@@ -6,6 +6,7 @@ namespace Argus.Infrastructure.Data
     public interface IDbConnectionFactory
     {
         IDbConnection CreateConnection();
+        Task<IDbConnection> CreateConnectionAsync();
     }
 
     public class NpgsqlConnectionFactory : IDbConnectionFactory
@@ -19,7 +20,16 @@ namespace Argus.Infrastructure.Data
 
         public IDbConnection CreateConnection()
         {
-            return new NpgsqlConnection(_connectionString);
+            var connection = new NpgsqlConnection(_connectionString);
+            connection.Open();
+            return connection;
+        }
+
+        public async Task<IDbConnection> CreateConnectionAsync()
+        {
+            var connection = new NpgsqlConnection(_connectionString);
+            await connection.OpenAsync();
+            return connection;
         }
     }
 }

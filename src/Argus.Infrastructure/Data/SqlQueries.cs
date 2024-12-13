@@ -40,5 +40,13 @@ public static class SqlQueries
             DELETE FROM tenants
             WHERE id = @Id
             """;
+
+        public const string CheckPermission = @"
+        SELECT COUNT(1)
+        FROM tenant_user_permissions tup
+        JOIN tenant_users tu ON tu.id = tup.tenant_user_id
+        WHERE tu.user_id = @UserId 
+        AND tu.tenant_id = @TenantId 
+        AND tup.permission = @Permission";
     }
 }

@@ -27,7 +27,7 @@ public class TenantAuthorizationHandler : AuthorizationHandler<TenantPermissionR
         _logger = logger;
     }
 
-    protected override async ValueTask HandleRequirementAsync(
+    protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         TenantPermissionRequirement requirement)
     {
@@ -69,13 +69,19 @@ public class TenantAuthorizationHandler : AuthorizationHandler<TenantPermissionR
             return headerTenantId;
         }
 
-        // Try endpoint metadata
+        // Try route values
         var endpoint = context.GetEndpoint();
-        var routeData = endpoint?.Metadata.GetMetadata<RouteValueDictionary>();
-        var routeTenantId = routeData?[TenantQueryParam]?.ToString();
-        if (Guid.TryParse(routeTenantId, out var routeId))
+
+        if (endpoint != null)
         {
-            return routeId;
+            var routeValues = context.GetRouteData()?.Values;
+            if (routeValues != null && routeValues.TryGetValue(TenantQueryParam, out var routeValue))
+            {
+                if (Guid.TryParse(routeValue?.ToString(), out var routeId))
+                {
+                    return routeId;
+                }
+            }
         }
 
         // Try query string

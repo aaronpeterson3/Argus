@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orleans.TestingHost;
 using Argus.Abstractions;
 using Moq;
+using Argus.Abstractions.Models;
 
 namespace Argus.Tests
 {
@@ -27,7 +28,8 @@ namespace Argus.Tests
             {
                 FirstName = "John",
                 LastName = "Doe",
-                DisplayName = "JohnD"
+                DisplayName = "JohnD",
+                PhoneNumber = "" // Added to match the model
             };
 
             // Act

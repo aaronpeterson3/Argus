@@ -1,9 +1,9 @@
+using Argus.Infrastructure.Configuration;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using Argus.Infrastructure.Configuration;
 
 namespace Argus.Infrastructure.Services;
 
