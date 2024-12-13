@@ -71,6 +71,7 @@ public class TenantAuthorizationHandler : AuthorizationHandler<TenantPermissionR
 
         // Try route values
         var endpoint = context.GetEndpoint();
+
         if (endpoint != null)
         {
             var routeValues = context.GetRouteData()?.Values;
