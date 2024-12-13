@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Orleans;
 using Argus.Infrastructure.MultiTenant;
+using Argus.Abstractions.Grains;
 
 namespace Argus.Api.Controllers
 {
@@ -22,19 +23,23 @@ namespace Argus.Api.Controllers
         public async Task<IActionResult> InviteUser([FromBody] InviteUserRequest request)
         {
             var tenantGrain = _client.GetGrain<ITenantGrain>(request.TenantId);
-            var result = await tenantGrain.InviteUser(request.Email, request.Role);
+            var result = await tenantGrain.InviteUserAsync(request.Email, request.Role, GetCurrentUserId());
 
-            if (!result)
+            if (string.IsNullOrEmpty(result))
+            {
                 return BadRequest("Failed to invite user");
-
-            return Ok();
+            }
+            else
+            {
+                return (IActionResult)Ok();
+            }
         }
 
         [HttpPost("accept-invite")]
         public async Task<IActionResult> AcceptInvite([FromBody] AcceptInviteRequest request)
         {
             var tenantGrain = _client.GetGrain<ITenantGrain>(request.TenantId);
-            var result = await tenantGrain.AcceptInvite(GetCurrentUserId(), request.InviteToken);
+            var result = await tenantGrain.AcceptInviteAsync(request.TenantId, request.InviteToken);
 
             if (!result)
                 return BadRequest("Invalid or expired invite");

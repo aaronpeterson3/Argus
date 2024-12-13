@@ -9,7 +9,7 @@ namespace Argus.Tests
     [TestClass]
     public class UserGrainTests
     {
-        private TestCluster _cluster;
+        private TestCluster? _cluster;
 
         [TestInitialize]
         public void Initialize()
