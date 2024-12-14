@@ -1,29 +1,51 @@
 using Argus.Core.Infrastructure;
-using Microsoft.OpenApi.Models;
+using Argus.Core.Infrastructure.Middleware;
+using Argus.Features.Authentication.Infrastructure;
+using Argus.Features.Users.Infrastructure;
+using Argus.Features.Tenants.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Argus API", Version = "v1" });
-});
+builder.Services.AddSwaggerGen();
+
+// Add Core services
+builder.Services.AddCoreServices();
+builder.Services.AddHttpContextAccessor();
+
+// Add Feature services
+builder.Services.AddAuthenticationFeature();
+builder.Services.AddUsersFeature();
+builder.Services.AddTenantsFeature();
 
 // Add Orleans
 builder.Host.UseOrleans(siloBuilder =>
 {
-    // Orleans configuration will be moved here
+    if (builder.Environment.IsDevelopment())
+    {
+        siloBuilder.UseLocalhostClustering();
+        siloBuilder.AddMemoryGrainStorage("tenant-store");
+        siloBuilder.AddMemoryGrainStorage("user-store");
+    }
+    else
+    {
+        // Production Orleans configuration
+        // Add Azure/Redis/etc. clustering and storage
+    }
 });
 
-// Add MediatR
-builder.Services.AddMediatR(cfg => {
-    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
-    // Register features assemblies
-    cfg.RegisterServicesFromAssemblyContaining(typeof(Argus.Features.Authentication.Api.AuthenticationController));
-    cfg.RegisterServicesFromAssemblyContaining(typeof(Argus.Features.Users.Api.UsersController));
-    cfg.RegisterServicesFromAssemblyContaining(typeof(Argus.Features.Tenants.Api.TenantsController));
+// Add Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.Authority = builder.Configuration["Auth:Authority"];
+    options.Audience = builder.Configuration["Auth:Audience"];
 });
 
 var app = builder.Build();
@@ -35,8 +57,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<ActivityLoggingMiddleware>();
+
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseMiddleware<TenantMiddleware>();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
