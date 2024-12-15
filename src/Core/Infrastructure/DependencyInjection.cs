@@ -1,46 +1,65 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Argus.Core.Infrastructure.Caching;
+using Argus.Core.Infrastructure.FeatureFlags;
+using Argus.Core.Infrastructure.BackgroundJobs;
+using Argus.Core.Infrastructure.Events;
 
 namespace Argus.Core.Infrastructure
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddCoreServices(this IServiceCollection services)
+        public static IServiceCollection AddCoreServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // Add core services
-            services.AddScoped<IPasswordHasher, PasswordHasher>();
+            // Common services
             services.AddScoped<IDateTimeProvider, DateTimeProvider>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddHttpContextAccessor();
+
+            // Add Redis Cache
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = configuration.GetConnectionString("Redis");
+                options.InstanceName = "Argus:";
+            });
+
+            // Add Caching Services
+            services.AddScoped<ICacheService, RedisCacheService>();
+
+            // Add Feature Flags
+            services.AddScoped<IFeatureManager, FeatureManager>();
+
+            // Add Background Jobs
+            services.AddScoped<IJobService, JobService>();
+
+            // Add Event Publishing
+            services.AddScoped<IEventPublisher, EventPublisher>();
+
+            // Configure Orleans Streaming
+            services.AddOrleansStreaming(configuration);
 
             return services;
         }
-    }
 
-    public interface IDateTimeProvider
-    {
-        DateTime UtcNow { get; }
-    }
-
-    public class DateTimeProvider : IDateTimeProvider
-    {
-        public DateTime UtcNow => DateTime.UtcNow;
-    }
-
-    public interface ICurrentUserService
-    {
-        string UserId { get; }
-        string TenantId { get; }
-    }
-
-    public class CurrentUserService : ICurrentUserService
-    {
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public CurrentUserService(IHttpContextAccessor httpContextAccessor)
+        private static IServiceCollection AddOrleansStreaming(this IServiceCollection services, IConfiguration configuration)
         {
-            _httpContextAccessor = httpContextAccessor;
-        }
+            services.AddOrleans(siloBuilder =>
+            {
+                siloBuilder.AddMemoryStreams("EventStream")
+                    .AddMemoryGrainStorage("PubSubStore");
 
-        public string UserId => _httpContextAccessor.HttpContext?.User?.FindFirst("sub")?.Value;
-        public string TenantId => _httpContextAccessor.HttpContext?.User?.FindFirst("tenant_id")?.Value;
+                if (!string.IsNullOrEmpty(configuration.GetConnectionString("AzureStorage")))
+                {
+                    siloBuilder.AddAzureQueueStreams(
+                        "EventStream",
+                        configurator => configurator.Configure(options =>
+                        {
+                            options.ConnectionString = configuration.GetConnectionString("AzureStorage");
+                        }));
+                }
+            });
+
+            return services;
+        }
     }
 }
