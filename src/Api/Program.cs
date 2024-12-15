@@ -15,21 +15,20 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Add Core services
-builder.Services.AddCoreServices();
+builder.Services.AddCoreServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 
 // Add Health Checks
-builder.Services.AddHealthChecks(builder.Configuration);
+builder.Services.AddHealthChecks()
+    .AddCoreHealthChecks(builder.Configuration);
 
 // Add MediatR with CQRS behaviors
 builder.Services.AddMediatR(cfg => {
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
-    // Register features assemblies
     cfg.RegisterServicesFromAssemblyContaining<Argus.Features.Authentication.Api.AuthenticationController>();
     cfg.RegisterServicesFromAssemblyContaining<Argus.Features.Users.Api.UsersController>();
     cfg.RegisterServicesFromAssemblyContaining<Argus.Features.Tenants.Api.TenantsController>();
 
-    // Add pipeline behaviors
     cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
     cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 });
@@ -45,47 +44,24 @@ builder.Services.AddAuthenticationFeature();
 builder.Services.AddUsersFeature();
 builder.Services.AddTenantsFeature();
 
-// Add Orleans
-builder.Host.UseOrleans(siloBuilder =>
-{
-    if (builder.Environment.IsDevelopment())
-    {
-        siloBuilder.UseLocalhostClustering();
-        siloBuilder.AddMemoryGrainStorage("tenant-store");
-        siloBuilder.AddMemoryGrainStorage("user-store");
-    }
-    else
-    {
-        // Production Orleans configuration
-        siloBuilder.UseAzureStorageClustering(options =>
-            options.ConnectionString = builder.Configuration.GetConnectionString("Storage"));
-        siloBuilder.AddAzureTableGrainStorage("tenant-store", options =>
-            options.ConnectionString = builder.Configuration.GetConnectionString("Storage"));
-        siloBuilder.AddAzureTableGrainStorage("user-store", options =>
-            options.ConnectionString = builder.Configuration.GetConnectionString("Storage"));
-    }
-});
+// Add Orleans with distributed services
+builder.Services.AddOrleansServices(builder.Configuration);
 
-// Add Authentication
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.Authority = builder.Configuration["Auth:Authority"];
-    options.Audience = builder.Configuration["Auth:Audience"];
-    options.TokenValidationParameters = new TokenValidationParameters
+// Add Authentication & Authorization
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true
-    };
-});
+        options.Authority = builder.Configuration["Auth:Authority"];
+        options.Audience = builder.Configuration["Auth:Audience"];
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true
+        };
+    });
 
-// Add Authorization Policies
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("RequireAdminRole", policy =>
@@ -105,7 +81,10 @@ if (app.Environment.IsDevelopment())
 }
 
 // Add health checks endpoint
-app.UseHealthChecks();
+app.UseHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 // Add middleware
 app.UseMiddleware<ExceptionHandlingMiddleware>();
