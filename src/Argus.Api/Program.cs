@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Orleans.Configuration;
 using Serilog;
 using Serilog.Events;
@@ -26,7 +27,7 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configure all Configuration objects
+// Configure all Configuration objects
 builder.Services.Configure<AuthConfig>(
     builder.Configuration.GetSection("Auth"));
 builder.Services.Configure<OrleansConfig>(
@@ -34,7 +35,7 @@ builder.Services.Configure<OrleansConfig>(
 builder.Services.Configure<OpenSearchOptions>(
     builder.Configuration.GetSection("Elasticsearch"));
 
-// 2. Configure Serilog
+// Configure Serilog
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -58,7 +59,7 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// 3. Core Services
+// Core Services
 builder.Services.AddHttpContextAccessor();
 
 // Database
@@ -68,15 +69,15 @@ builder.Services.AddSingleton<IDbConnectionFactory>(sp =>
 // Encryption
 builder.Services.AddSingleton<IDataEncryption, DataEncryption>();
 
-// 4. Infrastructure Services
+// Infrastructure Services
 builder.Services.AddInfrastructure();
 
-// 5. Business Services
+// Business Services
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<ITenantLogoStorage, TenantLogoStorage>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
-// 6. Authentication & Authorization
+// Authentication & Authorization
 var jwtSettings = builder.Configuration.GetSection("Auth").Get<AuthConfig>();
 if (string.IsNullOrEmpty(jwtSettings?.JwtSecret))
 {
@@ -102,10 +103,51 @@ builder.Services.AddTenantAuthorization();
 builder.Services.AddScoped<IAuthorizationHandler, TenantAuthorizationHandler>();
 builder.Services.AddScoped<ITenantPermissionService, TenantPermissionService>();
 
-// 7. API Features
+// API Features
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// Configure Swagger
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Argus API",
+        Version = "v1",
+        Description = "API for Argus multi-tenant application"
+    });
+
+    // Add JWT Authentication support in Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "JWT Authorization header using the Bearer scheme."
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+
+    // Enable XML Comments
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+});
 
 // API Versioning
 builder.Services.AddApiVersioning(options => {
@@ -118,7 +160,6 @@ builder.Services.AddApiVersioning(options => {
     options.SubstituteApiVersionInUrl = true;
 });
 
-// 8. Additional Features
 // CORS
 builder.Services.AddCors(options => {
     options.AddDefaultPolicy(policy =>
@@ -159,7 +200,7 @@ builder.Services.AddHealthChecks()
     .AddCheck<OrleansHealthCheck>("Orleans")
     .AddCheck<OpenSearchHealthCheck>("OpenSearch");
 
-// 9. Orleans Configuration
+// Orleans Configuration
 builder.Host.UseOrleans((context, siloBuilder) =>
 {
     var orleansConfig = context.Configuration.GetSection("Orleans").Get<OrleansConfig>();
@@ -188,13 +229,17 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Argus API v1");
+        c.RoutePrefix = string.Empty; // Serve the Swagger UI at the root URL
+    });
 }
 
-// 1. Exception Handling
+// Exception Handling
 app.UseExceptionHandler("/error");
 
-// 2. Security Headers
+// Security Headers
 app.Use((context, next) =>
 {
     context.Response.Headers.Add("X-Frame-Options", "DENY");
@@ -206,27 +251,27 @@ app.Use((context, next) =>
     return next();
 });
 
-// 3. Basic Security
+// Basic Security
 app.UseHttpsRedirection();
 app.UseCors();
 
-// 4. Response Compression
+// Response Compression
 app.UseResponseCompression();
 
-// 5. Rate Limiting
+// Rate Limiting
 app.UseRateLimiter();
 
-// 6. Routing
+// Routing
 app.UseRouting();
 
-// 7. Request Pipeline
+// Request Pipeline
 app.UseMiddleware<RequestLogContextMiddleware>();
 
-// 8. Authentication & Authorization
+// Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 9. Endpoints
+// Endpoints
 app.MapControllers();
 app.MapHealthChecks("/health");
 
