@@ -40,9 +40,6 @@
     
     <!-- Orleans -->
     <PackageReference Include="Microsoft.Orleans.Server" Version="7.2.4" />
-    
-    <!-- Rate Limiting -->
-    <PackageReference Include="Microsoft.AspNetCore.RateLimiting" Version="7.0.0" />
   </ItemGroup>
 
 </Project>
