@@ -1,66 +1,85 @@
-import { createContext, useContext, useState } from 'react';
-import axios from 'axios';
+import create from 'zustand'
+import { AuthState, LoginRequest, SystemInitRequest } from '@/types/auth'
+import axios from 'axios'
 
-interface AuthContextType {
-  user: any | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (userData: any) => Promise<void>;
-  requestPasswordReset: (email: string) => Promise<void>;
+const API_URL = '/api'
+
+interface AuthStore extends AuthState {
+  login: (credentials: LoginRequest) => Promise<void>;
   logout: () => void;
+  initialize: (request: SystemInitRequest) => Promise<void>;
+  checkSystem: () => Promise<boolean>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const useAuth = create<AuthStore>((set, get) => ({
+  user: null,
+  token: localStorage.getItem('token'),
+  isAuthenticated: !!localStorage.getItem('token'),
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  login: async (credentials) => {
+    try {
+      const response = await axios.post(`${API_URL}/auth/login`, credentials)
+      const { token, user } = response.data
+
+      localStorage.setItem('token', token)
+      set({ token, user, isAuthenticated: true })
+
+      // Set default Authorization header for future requests
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    } catch (error) {
+      throw error
+    }
+  },
+
+  logout: () => {
+    localStorage.removeItem('token')
+    delete axios.defaults.headers.common['Authorization']
+    set({ token: null, user: null, isAuthenticated: false })
+  },
+
+  initialize: async (request) => {
+    try {
+      await axios.post(`${API_URL}/tenant/initialize`, request)
+      await get().login({
+        email: request.adminEmail,
+        password: request.adminPassword
+      })
+    } catch (error) {
+      throw error
+    }
+  },
+
+  checkSystem: async () => {
+    try {
+      const response = await axios.get(`${API_URL}/system/status`)
+      return response.data.initialized
+    } catch (error) {
+      return false
+    }
   }
-  return context;
-};
+}))
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<any | null>(null);
-
-  const login = async (email: string, password: string) => {
-    try {
-      const response = await axios.post('/api/auth/login', { email, password });
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      setUser(user);
-    } catch (error) {
-      throw new Error('Login failed');
+// Initialize axios interceptor for token
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
     }
-  };
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
 
-  const register = async (userData: any) => {
-    try {
-      await axios.post('/api/auth/register', userData);
-    } catch (error) {
-      throw new Error('Registration failed');
+// Add response interceptor for handling unauthorized requests
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      useAuth.getState().logout()
     }
-  };
-
-  const requestPasswordReset = async (email: string) => {
-    try {
-      await axios.post('/api/auth/reset-password', { email });
-    } catch (error) {
-      throw new Error('Password reset request failed');
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-  };
-
-  const value = {
-    user,
-    login,
-    register,
-    requestPasswordReset,
-    logout
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+    return Promise.reject(error)
+  }
+)
