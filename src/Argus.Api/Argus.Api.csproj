@@ -39,7 +39,7 @@
     <PackageReference Include="Serilog.Sinks.OpenSearch" Version="1.0.0" />
     
     <!-- Orleans -->
-    <PackageReference Include="Microsoft.Orleans.Server" Version="7.2.4" />
+    <PackageReference Include="Microsoft.Orleans.Server" Version="8.0.0" />
   </ItemGroup>
 
 </Project>
