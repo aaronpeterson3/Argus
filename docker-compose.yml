@@ -2,28 +2,45 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:14-alpine
     environment:
       POSTGRES_DB: argus
       POSTGRES_USER: argus
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: argus_password
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
-  liquibase:
-    image: liquibase/liquibase
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: .
+      dockerfile: src/Argus.Api/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=argus;Username=argus;Password=argus_password
+      - Orleans__ClusterId=dev
+      - Orleans__ServiceId=ArgusService
+      - Redis__ConnectionString=redis:6379
     depends_on:
       - postgres
-    volumes:
-      - ./db/changelog:/liquibase/changelog
-    command: update
-    environment:
-      LIQUIBASE_URL: jdbc:postgresql://postgres:5432/argus
-      LIQUIBASE_USERNAME: argus
-      LIQUIBASE_PASSWORD: ${DB_PASSWORD}
-      LIQUIBASE_CHANGELOG_FILE: /liquibase/changelog/db.changelog-master.yaml
+      - redis
+    ports:
+      - "5000:80"
+
+  web:
+    build:
+      context: src/Argus.Web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
 
 volumes:
-  postgres_data:
+  postgres-data:
